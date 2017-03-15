@@ -20,7 +20,6 @@ generateRandomString();
 var urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com",
-  "egr8fh": "http://www.yahoo.com"
 };
 
 app.get("/", (request, response) => {
@@ -62,8 +61,16 @@ app.get("/urls/:id", (request, response) => {
 
 
 app.post("/urls", (request, response) => {
-  console.log(request.body.longURL);  // debug statement to see POST parameters
-  response.send("Ok");         // Respond with 'Ok' (we will replace this)
+    let longURL = request.body.longURL;
+    let shortURL = generateRandomString();
+    urlDatabase[shortURL] = request.body.longURL;
+    response.redirect('http://localhost:8080/urls/' + shortURL);
+});
+
+app.get("/u/:shortURL", (request, response) => {
+  let shortURL = request.params.shortURL;
+  let longURL = urlDatabase[shortURL];
+  response.redirect(longURL);
 });
 
 
