@@ -45,10 +45,17 @@ app.get("/urls/new", (request, response) => {
   response.render("urls_new");
 });
 
+app.post("/urls", (request, response) => {
+    let longURL = request.body.longURL;
+    let shortURL = generateRandomString();
+    urlDatabase[shortURL] = request.body.longURL;
+    response.redirect('http://localhost:8080/urls/' + shortURL);
+});
+
 app.get("/urls/:id", (request, response) => {
   let shortURL = request.params.id;
   let longURL = urlDatabase[shortURL];
-  if(!longURL) {
+    if(!longURL) {
     response.send('Not Found');
     response.end();
     return;
@@ -59,20 +66,18 @@ app.get("/urls/:id", (request, response) => {
   });
 });
 
-
-app.post("/urls", (request, response) => {
-    let longURL = request.body.longURL;
-    let shortURL = generateRandomString();
-    urlDatabase[shortURL] = request.body.longURL;
-    response.redirect('http://localhost:8080/urls/' + shortURL);
-});
-
 app.get("/u/:shortURL", (request, response) => {
   let shortURL = request.params.shortURL;
   let longURL = urlDatabase[shortURL];
   response.redirect(longURL);
 });
 
+//update
+app.post('/urls/:id', (request, response) => {
+  urlDatabase[request.params.id] = request.body.longURL;
+  response.redirect('/urls');
+});
+//delete
 app.post('/urls/:id/delete', (request, response) =>{
   delete urlDatabase[request.params.id];
   response.redirect('/urls');
