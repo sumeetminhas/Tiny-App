@@ -73,6 +73,10 @@ app.get("/u/:shortURL", (request, response) => {
   response.redirect(longURL);
 });
 
+app.post('/urls/:id/delete', (request, response) =>{
+  delete urlDatabase[request.params.id];
+  response.redirect('/urls');
+});
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);

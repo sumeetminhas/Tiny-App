@@ -12,17 +12,19 @@
 
     <% include ./partials/_header %>
 
-  <ul>
-    <% for (var url in urls) { %>
+<ul>
+  <% for (var shortURL in urls) { %>
     <li>
-      <%= url %> :
-      <a href="/urls/<%= url %>"> <%= urls[url] %></a>
+      <%= shortURL %> :
+        <a href="/urls/<%= shortURL %>"> <%= urls[shortURL] %></a>
+          <form method="POST" action="/urls/<%= shortURL %>/delete">
+        <p>
+          <button>Delete URL</button>
+        </p>
+      </form>
     </li>
-    <% } %>
-
-  </ul>
-
-
+  <% } %>
+</ul>
 </body>
 
 </html>
