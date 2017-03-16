@@ -6,6 +6,7 @@ const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
 
+//generate random 6 alphanumeric string for shortURL
 function generateRandomString() {
   var text = "";
   var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -25,7 +26,7 @@ var urlDatabase = {
 app.get("/", (request, response) => {
   response.end("Hello!");
 });
-
+//response can contain html code
 app.get("/hello", (request, response) => {
   response.end("<html><body>Hello <b>World</b></body></html>\n");
 });
@@ -34,12 +35,14 @@ app.get("/urls.json", (request, response) => {
   response.json(urlDatabase);
 });
 
+//route handler to pass URL data to my template
 app.get("/urls", (request, response) => {
   let templateVars = {
    urls: urlDatabase
  };
   response.render("urls_index", templateVars);
 });
+
 
 app.get("/urls/new", (request, response) => {
   response.render("urls_new");
@@ -52,6 +55,8 @@ app.post("/urls", (request, response) => {
     response.redirect('http://localhost:8080/urls/' + shortURL);
 });
 
+//route to display a single URL and shortened form
+//return not found
 app.get("/urls/:id", (request, response) => {
   let shortURL = request.params.id;
   let longURL = urlDatabase[shortURL];
@@ -66,18 +71,19 @@ app.get("/urls/:id", (request, response) => {
   });
 });
 
+//handles shortURL requests that redirect to longURL
 app.get("/u/:shortURL", (request, response) => {
   let shortURL = request.params.shortURL;
   let longURL = urlDatabase[shortURL];
   response.redirect(longURL);
 });
 
-//update
+//update a long url and redirect to main /urls page
 app.post('/urls/:id', (request, response) => {
   urlDatabase[request.params.id] = request.body.longURL;
   response.redirect('/urls');
 });
-//delete
+//delete a url
 app.post('/urls/:id/delete', (request, response) =>{
   delete urlDatabase[request.params.id];
   response.redirect('/urls');
