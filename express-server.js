@@ -24,7 +24,7 @@ var urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com",
 };
-
+// root page
 app.get("/", (request, response) => {
   response.end("Hello!");
 });
@@ -40,7 +40,8 @@ app.get("/urls.json", (request, response) => {
 //route handler to pass URL data to my template
 app.get("/urls", (request, response) => {
   let templateVars = {
-   urls: urlDatabase
+    username: request.cookies["username"],
+    urls: urlDatabase
  };
   response.render("urls_index", templateVars);
 });
@@ -69,7 +70,8 @@ app.get("/urls/:id", (request, response) => {
   }
   response.render("urls_show", {
     longURL: longURL,
-    shortURL: shortURL
+    shortURL: shortURL,
+    username: request.cookies["username"]
   });
 });
 
@@ -96,7 +98,12 @@ app.post('/urls/:id/delete', (request, response) =>{
 app.post("/login", (request, response) => {
   let username = request.body.username;
   response.cookie('username', username);
-  response.redirect('/');
+  response.redirect('/urls');
+});
+
+app.post('/logout', (request, response) => {
+  response.clearCookie('username');
+  response.redirect("/urls");
 });
 
 app.listen(PORT, () => {
