@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const PORT = process.env.PORT || 8080; // default port 8080
+const PORT = process.env.PORT || 8080;
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 
@@ -12,17 +12,17 @@ app.use(cookieParser());
 function generateRandomString() {
   var text = "";
   var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    for( var i=0; i < 6; i++ ){
-      text += possible.charAt(Math.floor(Math.random() * possible.length));
-   };
-   console.log(text);
-   return text;
-};
+  for( var i = 0; i < 6; i++ ){
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+  }
+  console.log(text);
+  return text;
+}
 generateRandomString();
 
 var urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com",
+  "9sm5xK": "http://www.google.com"
 };
 // root page
 app.get("/", (request, response) => {
@@ -42,7 +42,7 @@ app.get("/urls", (request, response) => {
   let templateVars = {
     username: request.cookies["username"],
     urls: urlDatabase
- };
+  };
   response.render("urls_index", templateVars);
 });
 
@@ -52,10 +52,10 @@ app.get("/urls/new", (request, response) => {
 });
 
 app.post("/urls", (request, response) => {
-    let longURL = request.body.longURL;
-    let shortURL = generateRandomString();
-    urlDatabase[shortURL] = request.body.longURL;
-    response.redirect('http://localhost:8080/urls/' + shortURL);
+  let longURL = request.body.longURL;
+  let shortURL = generateRandomString();
+  urlDatabase[shortURL] = request.body.longURL;
+  response.redirect('http://localhost:8080/urls/' + shortURL);
 });
 
 //route to display a single URL and shortened form
@@ -63,7 +63,7 @@ app.post("/urls", (request, response) => {
 app.get("/urls/:id", (request, response) => {
   let shortURL = request.params.id;
   let longURL = urlDatabase[shortURL];
-    if(!longURL) {
+  if(!longURL) {
     response.send('Not Found');
     response.end();
     return;
