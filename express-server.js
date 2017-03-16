@@ -18,18 +18,17 @@ function generateRandomString() {
   console.log(text);
   return text;
 }
-generateRandomString();
-
-// function generateRandomUserID() {
-//   var text = "";
-//   var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-//   for( var i = 0; i < 6; i++ ){
-//     text += possible.charAt(Math.floor(Math.random() * possible.length));
-//   }
-//   console.log(text);
-//   return text;
-// }
 // generateRandomString();
+
+function generateRandomUserID() {
+  var text = "";
+  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  for( var i = 0; i < 6; i++ ){
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+  }
+  console.log(text);
+  return text;
+}
 
 const users = {
   "userRandomID": {
@@ -41,8 +40,27 @@ const users = {
     id: "user2RandomID",
     email: "user2@example.com",
     password: "dishwasher-funk"
-  }
+  },
 };
+
+function addUser(email, password) {
+  var newUser = generateRandomUserID();
+  users[newUser] = {};
+
+  users[newUser].id = newUser;
+  users[newUser].email = email;
+  users[newUser].password = password;
+  console.log(users[newUser]);
+}
+
+function findUserByEmail(email){
+  for (var user in users) {
+    if (email === users[user].email) {
+      return user;
+    }
+  }
+  return false;
+}
 
 var urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -110,6 +128,22 @@ app.get('/register', (request, response) => {
   response.render('register');
 });
 
+app.post('/register', (request, response) => {
+  var newEmailAddress = request.body.email;
+  console.log("found the new user's email address:", newEmailAddress);
+    // warn user that this email already in use
+    // send them a 400 (because we are rude lazy jerkfaces)
+  if (findUserByEmail(newEmailAddress)) {
+    response.status(400);
+    response.render('error');
+  } else {
+    // add them to user database
+    let newUser = addUser(request.body.email, request.body.password);
+    response.cookie('newUser', newUser);
+    response.redirect('/');
+  }
+});
+
 //update a long url and redirect to main /urls page
 app.post('/urls/:id', (request, response) => {
   urlDatabase[request.params.id] = request.body.longURL;
@@ -133,19 +167,6 @@ app.post('/logout', (request, response) => {
   response.clearCookie('username');
   response.redirect("/urls");
 });
-
-
-
-// app.post('/register', (request, response) => {
-//   let user = userDB[request.body.email];
-//   if(user && user.password === request.body.password) {
-//     request.body.email = request.body.email;
-//     respone.redirect('/urls');
-//   } else {
-//     response.status(403);
-//     response.render('403');
-//   }
-// });
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
