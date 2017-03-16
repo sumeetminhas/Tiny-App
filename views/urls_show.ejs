@@ -12,9 +12,9 @@
 
     <% include ./partials/_header %>
 
-  <h1><%= shortURL %></h1>
+  <h2> Short URL <%= shortURL %></h2>
 
-  <h3><%= longURL %>longURL </h3>
+  <h3>Long URL <%= longURL %></h3>
 
   <form action="/urls/<%=shortURL %>" method="POST">
   <p>

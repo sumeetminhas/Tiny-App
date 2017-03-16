@@ -2,9 +2,11 @@ const express = require("express");
 const app = express();
 const PORT = process.env.PORT || 8080; // default port 8080
 const bodyParser = require("body-parser");
+const cookieParser = require("cookie-parser");
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
+app.use(cookieParser());
 
 //generate random 6 alphanumeric string for shortURL
 function generateRandomString() {
@@ -87,6 +89,14 @@ app.post('/urls/:id', (request, response) => {
 app.post('/urls/:id/delete', (request, response) =>{
   delete urlDatabase[request.params.id];
   response.redirect('/urls');
+});
+
+//set cookie, redirect to '/' page
+//set and store cookie
+app.post("/login", (request, response) => {
+  let username = request.body.username;
+  response.cookie('username', username);
+  response.redirect('/');
 });
 
 app.listen(PORT, () => {
