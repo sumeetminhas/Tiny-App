@@ -2,13 +2,9 @@
 
 <html lang="en">
 
-<head>
+<head></head>
 
-  <title>TinyApp</title>
-
-</head>
-
-<body>
+<body style="font-size:20px; padding:50px;">
 
     <% include partials/_header %>
 
@@ -16,10 +12,10 @@
 
   <h3>Long URL <%= longURL %></h3>
 
-  <form action="/urls/<%=shortURL %>" method="POST">
+  <form action="/urls/<%=shortURL %>" method="POST" style="margin:150px;>
   <p>
     <label for="update_field">Update</label>
-    <input id="update_field" type="text" name="longURL" value="<%= longURL %>">
+    <input id="update_field" type="text" name="longURL" value="<%= longURL %> tyle="width: 300px">
   </p>
   <p>
     <button>Update URL</button>

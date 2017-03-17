@@ -32,11 +32,16 @@ function generateRandomUserID() {
   return text;
 }
 
+function generateRandomString() {
+  return Math.random().toString(36).replace(/[^a-z0-9]+/g, '').substr(0, 6);
+}
+
 const users = {
   "userRandomID": {
     id: "userRandomID",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur"
+    password: "purple-monkey-dinosaur",
+
   },
   "user2RandomID": {
     id: "user2RandomID",
@@ -65,11 +70,29 @@ function findUserByEmail(email){
   }
   return false;
 }
+//Return the list of urls compare logged in id with urldatabase user id
+function urlsForUser(user_id) {
+  let userUrlList = {};
+  for ( let item in urlDatabase) {
+    if (user_id === urlDatabase[item].userid) {
+      userUrlList[item] = {id: item, url: urlDatabase[item.url], userid: user_id};
+    }
+  }
+  return userUrlList;
+}
 
 
-var urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+const urlDatabase = {
+  "b2xVn2": {
+    id: "b2xVn2",
+    url: "http://www.lighthouselabs.ca",
+    user_id: "userRandomID"
+  },
+  "9sm5xK": {
+    id: "9sm5xK",
+    url: "http://www.google.com",
+    user_id: "user2RandomID"
+  }
 };
 
 app.get("/", (request, response) => {
@@ -77,13 +100,6 @@ app.get("/", (request, response) => {
   console.log(request.cookies.user_id);
   response.end("Hello!");
 });
-
-
-// app.get("/urls.json", (request, response) => {
-//   response.json(urlDatabase);
-// });
-
-// users[request.cookies["user_id"]]
 
 //route handler to pass URL data to my template
 app.get("/urls", (request, response) => {
@@ -96,9 +112,16 @@ app.get("/urls", (request, response) => {
   response.render("urls_index", templateVars);
 });
 
-
+// post the new urls to tiny app
 app.get("/urls/new", (request, response) => {
-  response.render("urls_new");
+  if (request.cookie.user_id) {
+    let templateVars = {
+      newUser: request.cookies.user_id
+    };
+    response.render("/urls_new", templateVars);
+  } else {
+    response.redirect("/login");
+  }
 });
 
 app.post("/urls", (request, response) => {
@@ -158,9 +181,23 @@ app.post('/urls/:id', (request, response) => {
   response.redirect('/urls');
 });
 //delete a url
-app.post('/urls/:id/delete', (request, response) =>{
-  delete urlDatabase[request.params.id];
-  response.redirect('/urls');
+app.delete('/urls/:id', (request, response) => {
+  if (request.cookie.user_id) {
+    let userID = request.cookie.user_id;
+    let usersURLs = [];
+    for (let item in urlDatabase) {
+      if (userID === urlDatabase[item].userid) {
+        usersURL.push(urlDatabase[item].url);
+    }
+  }
+  let deleteShortURL = request.params.id;
+  if (usersURL.indexOf(deleteShortURL) >= 0) {
+    delete urlDatabase[request.params.id];
+    response.redirect('/urls');
+    return;
+    }
+  }
+  response.redirect(401, '/login');
 });
 
 
