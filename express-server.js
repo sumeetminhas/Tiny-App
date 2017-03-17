@@ -3,13 +3,40 @@ const app = express();
 const PORT = process.env.PORT || 8080;
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
+const bcrypt = require('bcrypt');
+const cookieSession = require('cookie-session');
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
 app.use(cookieParser());
 
+//OBJECTS
+const urlDatabase = {
+  "b2xVn2": {
+    "b2xVn2": "http://www.lighthouselabs.ca",
+    "9sm5xK": "http://www.google.com",
+  }
+}
 
+const users = {
+  "u1ID": {
+    id: "u1ID",
+    email: "user@example.com",
+    password: "u1id",
+  },
+  "u2ID": {
+    id: "u2ID",
+    email: "user2@example.com",
+    password: "u2id"
+  },
+  "u3ID": {
+    id: "u3ID",
+    email: "user3@example.com",
+    password: "u3id"
+  }
+};
 
+//FUNCTIONS
 //generate random 6 alphanumeric string for shortURL
 function generateRandomString() {
   var text = "";
@@ -20,38 +47,12 @@ function generateRandomString() {
   console.log(text);
   return text;
 }
-// generateRandomString();
+generateRandomString();
 
-function generateRandomUserID() {
-  var text = "";
-  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  for( var i = 0; i < 6; i++ ){
-    text += possible.charAt(Math.floor(Math.random() * possible.length));
-  }
-  console.log(text);
-  return text;
-}
 
-function generateRandomString() {
-  return Math.random().toString(36).replace(/[^a-z0-9]+/g, '').substr(0, 6);
-}
-
-const users = {
-  "userRandomID": {
-    id: "userRandomID",
-    email: "user@example.com",
-    password: "purple-monkey-dinosaur",
-
-  },
-  "user2RandomID": {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: "dishwasher-funk"
-  }
-};
-
+//create new user with random generated id
 function addUser(email, password) {
-  var newUser = generateRandomUserID();
+  var newUser = generateRandomString();
   users[newUser] = {};
 
   users[newUser].id = newUser;
@@ -59,6 +60,16 @@ function addUser(email, password) {
   users[newUser].password = password;
   console.log(users[newUser]);
   return newUser;
+}
+
+// check user password
+function getUserPassword(checkEmail, checkPassword) {
+  for (var item in users) {
+    if (users[item].email === checkEmail && bcrypt.compareSync(checkPassword, users[item].password)) {
+      return users[item].id;
+    }
+  }
+  return false;
 }
 
 function findUserByEmail(email){
@@ -70,6 +81,7 @@ function findUserByEmail(email){
   }
   return false;
 }
+
 //Return the list of urls compare logged in id with urldatabase user id
 function urlsForUser(user_id) {
   let userUrlList = {};
@@ -81,20 +93,7 @@ function urlsForUser(user_id) {
   return userUrlList;
 }
 
-
-const urlDatabase = {
-  "b2xVn2": {
-    id: "b2xVn2",
-    url: "http://www.lighthouselabs.ca",
-    user_id: "userRandomID"
-  },
-  "9sm5xK": {
-    id: "9sm5xK",
-    url: "http://www.google.com",
-    user_id: "user2RandomID"
-  }
-};
-
+//ENDPOINTS
 app.get("/", (request, response) => {
   console.log(users);
   console.log(request.cookies.user_id);
@@ -156,12 +155,19 @@ app.get("/u/:shortURL", (request, response) => {
 });
 
 app.get('/register', (request, response) => {
-  response.render('register');
+  if (request.session.user_id) {
+    response.redirect('/');
+    return;
+  }
+  let templateVars = {
+    newUser: [request.session.user_id]
+  };
+  response.render('register', templateVars);
 });
 
 app.post('/register', (request, response) => {
   var newEmailAddress = request.body.email;
-  // console.log("found the new user's email address:", newEmailAddress);
+    if (!request.body.email)
     // warn user that this email already in use
     // send them a 400 (because we are rude lazy jerkfaces)
   if (findUserByEmail(newEmailAddress)) {
@@ -209,6 +215,7 @@ app.get('/login', (request, response) => {
 //set and store cookie
 app.post("/login", (request, response) => {
   // if there's no email, or no password, tell the user that they are being silly, smarten up
+
   //check if thers a user with body email
   let registeredUser = findUserByEmail(request.body.email);
   //check if user has body password
