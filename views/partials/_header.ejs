@@ -1,18 +1,23 @@
+<!DOCTYPE html>
 
-<h1>Header</h1>
-<%= username %>
-<% if (username) { %>
-  <form action="/logout" method="POST">
-    <input type="submit" value="logout">
-<% } else { %>
+<html lang="en">
 
-<form action="/login" method="POST">
-  <p>
-    <label for="username_field">Username</label>
-    <input id="username_field" type="text" name="username" value="username">
-  </p>
-  <p>
-    <button>Submit</button>
-  </p>
-</form>
-<% } %>
+<head>
+
+  <title>TinyApp</title>
+
+</head>
+
+<body>
+<!--  <% if () { %> -->
+
+  <h4><a href="/logout"</a>Logout</h4>
+
+<!--     <% } else { %> -->
+
+  <h2><a href="/register"</a>Register</h2>
+  <h3><a href="/login"</a>Log In</h2>
+<!-- <% } %> -->
+</body>
+
+</html>

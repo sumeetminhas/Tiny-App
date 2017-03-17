@@ -51,29 +51,36 @@ function addUser(email, password) {
   users[newUser].email = email;
   users[newUser].password = password;
   console.log(users[newUser]);
+  return newUser;
 }
 
 function findUserByEmail(email){
-  for (var user in users) {
-    if (email === users[user].email) {
+  for (var userId in users) {
+    user = users[userId];
+    if (email === user.email) {
       return user;
     }
   }
   return false;
 }
 
+
 var urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
+
 // root page
 app.get("/", (request, response) => {
+  console.log(users);
+  console.log(request.cookies.user_id);
   response.end("Hello!");
 });
-//response can contain html code
-app.get("/hello", (request, response) => {
-  response.end("<html><body>Hello <b>World</b></body></html>\n");
-});
+
+// //response can contain html code
+// app.get("/hello", (request, response) => {
+//   response.end("<html><body>Hello <b>World</b></body></html>\n");
+// });
 
 app.get("/urls.json", (request, response) => {
   response.json(urlDatabase);
@@ -82,7 +89,7 @@ app.get("/urls.json", (request, response) => {
 //route handler to pass URL data to my template
 app.get("/urls", (request, response) => {
   let templateVars = {
-    username: request.cookies["username"],
+    newUser: request.cookies["user_id"],
     urls: urlDatabase
   };
   response.render("urls_index", templateVars);
@@ -113,7 +120,7 @@ app.get("/urls/:id", (request, response) => {
   response.render("urls_show", {
     longURL: longURL,
     shortURL: shortURL,
-    username: request.cookies["username"]
+    username: request.cookies["user_id"]
   });
 });
 
@@ -130,7 +137,7 @@ app.get('/register', (request, response) => {
 
 app.post('/register', (request, response) => {
   var newEmailAddress = request.body.email;
-  console.log("found the new user's email address:", newEmailAddress);
+  // console.log("found the new user's email address:", newEmailAddress);
     // warn user that this email already in use
     // send them a 400 (because we are rude lazy jerkfaces)
   if (findUserByEmail(newEmailAddress)) {
@@ -138,8 +145,8 @@ app.post('/register', (request, response) => {
     response.render('error');
   } else {
     // add them to user database
-    let newUser = addUser(request.body.email, request.body.password);
-    response.cookie('newUser', newUser);
+    let newUserId = addUser(request.body.email, request.body.password);
+    response.cookie('user_id', newUserId);
     response.redirect('/');
   }
 });
@@ -155,16 +162,35 @@ app.post('/urls/:id/delete', (request, response) =>{
   response.redirect('/urls');
 });
 
+
+app.get('/login', (request, response) => {
+  response.render('login');
+});
+
 //set cookie, redirect to '/' page
 //set and store cookie
 app.post("/login", (request, response) => {
-  let username = request.body.username;
-  response.cookie('username', username);
-  response.redirect('/urls');
+  // if there's no email, or no password, tell the user that they are being silly, smarten up
+  //check if thers a user with body email
+  let registeredUser = findUserByEmail(request.body.email);
+  //check if user has body password
+  if (registeredUser && registeredUser.password === request.body.password) {
+    //login set cookie and redirect
+    response.cookie('user_id', registeredUser.id);
+    response.redirect('/');
+  } else {
+    //if not send 400
+    response.status(403);
+    response.render('error');
+  }
+});
+
+app.get('/logout', (request, response) => {
+  response.render('logout');
 });
 
 app.post('/logout', (request, response) => {
-  response.clearCookie('username');
+  response.clearCookie('user_id');
   response.redirect("/urls");
 });
 
