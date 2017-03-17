@@ -94,40 +94,45 @@ function urlsForUser(user_id) {
 }
 
 //ENDPOINTS
+// LET GET EM FIRST
 app.get("/", (request, response) => {
-  console.log(users);
-  console.log(request.cookies.user_id);
-  response.end("Hello!");
+  if (request.session.user_id) {
+    response.redirect('/urls');
+    return;
+  }
+  response.redirect('/login');
 });
 
 //route handler to pass URL data to my template
 app.get("/urls", (request, response) => {
-  // let userId = request.cookies.user_id;
-  // console.log(userId);
-  let templateVars = {
-    newUser: request.cookies.user_id,
-    urls: urlDatabase
-  };
-  response.render("urls_index", templateVars);
+  if (!request.session.user_id) {
+    response.redirect(401, '/');
+    return;
+  }
+  let usersShortUrl = {};
+    if ((usersShortUrl = getUsersShortUrl(request.session.user_id)) {
+      let templateVars = {
+      newUser: users[request.session.user_id]
+      urls: urlDatabase
+    };
+    response.statusCode = 200;
+    response.render('urls_index', templateVars);
+    return;
+  } else {
+    response.redirect(401, '/login');
+  }
 });
 
 // post the new urls to tiny app
 app.get("/urls/new", (request, response) => {
-  if (request.cookie.user_id) {
+  if (request.session.user_id) {
     let templateVars = {
-      newUser: request.cookies.user_id
+      newUser: users[request.session.user_id]
     };
     response.render("/urls_new", templateVars);
   } else {
     response.redirect("/login");
   }
-});
-
-app.post("/urls", (request, response) => {
-  let longURL = request.body.longURL;
-  let shortURL = generateRandomString();
-  urlDatabase[shortURL] = request.body.longURL;
-  response.redirect('http://localhost:8080/urls/' + shortURL);
 });
 
 //route to display a single URL and shortened form
@@ -146,6 +151,15 @@ app.get("/urls/:id", (request, response) => {
     username: request.cookies["user_id"]
   });
 });
+
+app.post("/urls", (request, response) => {
+  let longURL = request.body.longURL;
+  let shortURL = generateRandomString();
+  urlDatabase[shortURL] = request.body.longURL;
+  response.redirect('http://localhost:8080/urls/' + shortURL);
+});
+
+
 
 //handles shortURL requests that redirect to longURL
 app.get("/u/:shortURL", (request, response) => {
