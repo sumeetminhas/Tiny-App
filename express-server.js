@@ -8,6 +8,8 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
 app.use(cookieParser());
 
+
+
 //generate random 6 alphanumeric string for shortURL
 function generateRandomString() {
   var text = "";
@@ -40,7 +42,7 @@ const users = {
     id: "user2RandomID",
     email: "user2@example.com",
     password: "dishwasher-funk"
-  },
+  }
 };
 
 function addUser(email, password) {
@@ -70,26 +72,25 @@ var urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
-// root page
 app.get("/", (request, response) => {
   console.log(users);
   console.log(request.cookies.user_id);
   response.end("Hello!");
 });
 
-// //response can contain html code
-// app.get("/hello", (request, response) => {
-//   response.end("<html><body>Hello <b>World</b></body></html>\n");
+
+// app.get("/urls.json", (request, response) => {
+//   response.json(urlDatabase);
 // });
 
-app.get("/urls.json", (request, response) => {
-  response.json(urlDatabase);
-});
+// users[request.cookies["user_id"]]
 
 //route handler to pass URL data to my template
 app.get("/urls", (request, response) => {
+  // let userId = request.cookies.user_id;
+  // console.log(userId);
   let templateVars = {
-    newUser: users[request.cookies["user_id"]],
+    newUser: request.cookies.user_id,
     urls: urlDatabase
   };
   response.render("urls_index", templateVars);
@@ -185,9 +186,10 @@ app.post("/login", (request, response) => {
   }
 });
 
+
 app.post('/logout', (request, response) => {
   response.clearCookie('user_id');
-  response.redirect("/urls");
+  response.redirect('/');
 });
 
 app.listen(PORT, () => {
