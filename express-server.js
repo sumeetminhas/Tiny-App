@@ -89,7 +89,7 @@ app.get("/urls.json", (request, response) => {
 //route handler to pass URL data to my template
 app.get("/urls", (request, response) => {
   let templateVars = {
-    newUser: request.cookies["user_id"],
+    newUser: users[request.cookies["user_id"]],
     urls: urlDatabase
   };
   response.render("urls_index", templateVars);
@@ -183,10 +183,6 @@ app.post("/login", (request, response) => {
     response.status(403);
     response.render('error');
   }
-});
-
-app.get('/logout', (request, response) => {
-  response.render('logout');
 });
 
 app.post('/logout', (request, response) => {
