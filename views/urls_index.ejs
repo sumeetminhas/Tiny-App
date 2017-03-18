@@ -1,26 +1,34 @@
-<!DOCTYPE html>
 
-<html lang="en">
 
-<head></head>
+<html lang='en'>
+<head>
+  <title> Index </title>
+  <style>
+  .boxed {
+    border: 1px solid black;
+  }
+  </style>
+</head>
+<body class="container">
+  <header> <% include partials/_header %> </header>
+  <div class="jumbotron jumbotron-fluid">
 
- <body style="font-size:20px; padding:50px;">
-<% include partials/_header %>
-
-<ul>
-  <% for (var shortURL in urls) { %>
-    <li>
-      <%= shortURL %> :
-        <a href="/urls/<%= shortURL %>"> <%= urls[shortURL] %></a>
-          <form method="POST" action="/urls/<%= shortURL %>/delete">
-        <a href="/urls/<%= shortURL %>">Edit</a>
-        <p>
-          <button>Delete URL</button>
-        </p>
-      </form>
-    </li>
-  <% } %>
-</ul>
+    <ul>
+      <% for(item in urls){ %>
+      <li>
+        <form method="POST" action="/urls/<%= item %>?_method=DELETE">
+          <input type="submit" value="delete" style="float: right">
+        </form>
+          <a href="http://localhost:8080/u/<%= item %>"><%= item %></a>
+          =>
+          <a href="<%= urls[item].url %>"><%= urls[item].url %></a>
+          <button onclick="window.location.href='/urls/<%= item %>'" style="float:right">Edit</button>
+      </li>
+      <% } %>
+      </ul>
+  </div>
+<a href="http://localhost:8080/urls/new">Make a new Tiny URL!</a>
+</div>
 </body>
-
 </html>
+

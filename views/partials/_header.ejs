@@ -1,9 +1,29 @@
 
+<ul class="nav nav-pills">
 
-<form action="/logout" method="post">
-<button type='submit'>Logout</button>
-</form>
+  <li role="presentation" class="active"><a href="/">Home</a></li>
 
-  <h2><a href="/register"</a>Register</a></h2>
-  <h3><a href="/login"</a>Log In</a></h3>
+  <li role="presentation"><a href="/urls">Show URLs</a></li>
 
+  <li role="presentation"><a href="/urls/new">Create URL</a></li>
+
+  <% if(!user || !user.email) { %>
+
+  <li role="presentation"><a href="/register">Register</a></li>
+
+  <li role="presentation"><a href="/login">Login</a></li>
+
+  <% } %>
+  <% if(user && user.email){ %>
+
+  <div style="float: right">
+
+    <b>Welcome, <%= user['email'] %></b>
+
+    <form method="POST" action="/logout">
+
+      <input type="submit" value="Logout">
+    </form>
+  </div>
+  <% } %>
+</ul>

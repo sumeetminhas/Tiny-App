@@ -1,25 +1,22 @@
-<!doctype html>
+
+
+
+<!DOCTYPE>
 <html>
   <head>
+    <title>Register</title>
   </head>
-
-
-  <body>
-  <% include partials/_header.ejs %>
-
-    <h1>Please Register</h1>
-    <form action="/register" method="post">
-      <p>
-        <label for="email">Email</label>
-        <input type="email" name="email">
-      </p>
-      <p>
-        <label for="password">Password</label>
-        <input type="password" name="password">
-      </p>
-      <p>
-        <button type='submit'>Register</button>
-      </p>
-    </form>
+  <body class="container" >
+    <header> <% include partials/_header %> </header>
+    <main>
+      <h2>Registration Form</h2>
+        <form method="POST" action="/register">
+          <label for="email">Username: </label>
+          <input id="email" name="email" type="text" placeholder="email@address"required >
+          <label for="password">Password: </label>
+          <input id="password" name="password" type="text" placeholder="P@55w0rd" required>
+          <input type="submit" value="Register" style="float: right">
+        </form>
+    </main>
   </body>
 </html>

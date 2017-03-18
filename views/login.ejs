@@ -1,22 +1,21 @@
-<!doctype html>
+
+
+<!DOCTYPE>
 <html>
   <head>
+    <title>Login</title>
   </head>
-  <body>
-  <% include partials/_header %>
-    <h1>Please Log In</h1>
-    <form action="/login" method="post">
-      <p>
-        <label for="email">Email</label>
-        <input type="email" name="email">
-      </p>
-      <p>
-        <label for="password">Password</label>
-        <input type="password" name="password">
-      </p>
-      <p>
-        <button type='submit'>Log In</button>
-      </p>
-    </form>
+  <body class="container" >
+    <header> <% include partials/_header %> </header>
+    <main>
+      <h2>Login Form</h2>
+        <form method="POST" action="/login">
+          <label for="email">Username: </label>
+          <input id="email" name="email" type="email" placeholder="email@address"required >
+          <label for="password">Password: </label>
+          <input id="password" name="password" type="password" placeholder="P@55w0rd" required>
+          <input type="submit" value="Login" style="float: right">
+        </form>
+    </main>
   </body>
 </html>
