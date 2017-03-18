@@ -6,15 +6,14 @@ const cookieParser = require("cookie-parser");
 const bcrypt = require('bcrypt');
 const cookieSession = require('cookie-session');
 
-
+// ejs as engine declaration
 app.set("view engine", "ejs");
-
+//init middleware
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
 app.use(cookieSession({
-  name: 'session',
-  keys: [12334],
-  maxAge: 24 * 60 * 60 * 60 * 1000
+  secret: 'todo',
+  maxAge: 24 * 60 * 60 * 1000
 }));
 
 
@@ -24,11 +23,23 @@ const urlDatabase = {
     id: "b2xVn2",
     url: "http://www.lighthouselabs.ca",
     userid: "u1id",
+    views: 0,
+    uniqueViews: 0,
+    timeStamp: [],
+    visitorId: [],
+    visitorIp: [],
+    visitorAgent: []
   },
   "9sm5xK": {
     id: "9sm5xK",
     url: "http://www.google.com",
     userid: "u2id",
+    views: 0,
+    uniqueViews: 0,
+    timeStamp: [],
+    visitorId: [],
+    visitorIp: [],
+    visitorAgent: []
   }
 };
 
@@ -89,8 +100,9 @@ function getUserPassword(checkEmail, checkPassword) {
 //   return false;
 // }
 
+
 //Return the list of urls compare logged in id with urldatabase user id
-function urlsForUser(user_id) {
+function getUsersShortUrl(user_id) {
   let userUrlList = {};
   for ( let item in urlDatabase) {
     if (user_id === urlDatabase[item].userid) {
@@ -101,8 +113,9 @@ function urlsForUser(user_id) {
 }
 
 //ENDPOINTS
-// LET GET EM FIRST
+// GET
 app.get("/", (request, response) => {
+
   if (request.session.user_id) {
     response.redirect('/urls');
   } else {
@@ -113,6 +126,7 @@ app.get("/", (request, response) => {
 app.get('/login', (request, response) => {
   if (request.session.user_id) {
     response.redirect('/');
+    return;
   } else {
   let templateVars = {
     user: users[request.session.user_id]
@@ -136,19 +150,21 @@ app.get('/register', (request, response) => {
 //route handler to pass URL data to my template
 app.get('/urls', (request, response) => {
   if (!request.session.user_id) {
-    response.redirect(401, '/');
+    response.redirect('/');
     return;
   }
+
   let usersShortUrl = {};
     if ((usersShortUrl = getUsersShortUrl(request.session.user_id))) {
       let templateVars = {
-      user: users[request.session.user_id]
+      user: users[request.session.user_id],
+      urls: usersShortUrl
     };
     response.statusCode = 200;
     response.render('urls_index', templateVars);
     return;
   } else {
-    response.redirect(401, '/login');
+    response.redirect('/login');
   }
 });
 
@@ -198,14 +214,13 @@ app.get("/u/:shortURL", (request, response) => {
   let cookieKey = request.params.shortURL;
   if (urlDatabase[request.params.shortURL]) {
     urlDatabase[request.params.shortURL].views += 1;
-    urlDatabase[request.params.shortURL].timeStamp.push(new Date());
     urlDatabase[request.params.shortURL].visitorId.push(generateRandomString());
     urlDatabase[request.params.shortURL].visitorIp.push(request.connection.remoteAddresponses);
     urlDatabase[request.params.shortURL].visitorAgent.push(request.headers['user-agent']);
     // unique view count in cookie
     console.log(urlDatabase);
     if (!request.cookies[cookieKey]) {
-      response.cookie(cookiekey, 1);
+      response.cookie(cookieKey, 1);
       urlDatabase[request.params.shortURL].uniqueViews++;
     }
     // let date = new Date();
@@ -238,7 +253,7 @@ app.post("/urls", (request, response) => {
     id: short,
     url: request.body.longUrl,
     userid: userid
-  };
+    };
   response.redirect('http://localhost:8080/urls/' + short);
   return;
   response.redirect(403, '/login');
@@ -282,16 +297,20 @@ app.post('/register', (request, response) => {
   const password = bcrypt.hashSync(request.body.password, 10);
   for (let list in users) {
     if (users[list]['email'] === email) {
-    response.redirect(400, '/register');
-    return;
+      response.redirect(400, '/register');
+      return;
     }
-  } let ranId = generateRandomString();
+  } //end of for loop
+
+  let ranId = generateRandomString();
   while (users[ranId]) {
     ranId = generateRandomString();
   }
-    // add them to user database
+  // add them to user database
   users[ranId] = {'id': ranId, 'email': email, 'password': password };
-  request.session.user_id = ('user_id', ranId);
+  request.session.user_id = ranId;
+  //request.session.user_id = ('user_id', ranId);
+
   response.redirect('/');
 });
 
@@ -312,7 +331,7 @@ app.post("/login", (request, response) => {
   //check if thers a user with body email
   let email = request.body.email;
   let password = request.body.password;
-  let id = getUserPassword(email, password);
+  let id = getUserPasswordword(email, password);
   if (id) {
     request.session.user_id = id;
     response.redirect('/');
