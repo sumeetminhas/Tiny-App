@@ -1,28 +1,15 @@
 
-<ul class="nav nav-pills">
+<header>
+<% if (user) {  %>
+      <a href='/urls'>My Links</a>
+      <%= user['email'] %>
+      <form action="/logout" method="POST">
+      <input type="submit" value="logout">
+      </form>
 
-  <li role="presentation" class="active"><a href="/">Home</a></li>
+<% } else { %>
+      <p><a href="/login">login</a></p>
+    <a href="/register">register</a>
 
-  <li role="presentation"><a href="/urls">Show URLs</a></li>
-
-  <li role="presentation"><a href="/urls/new">Create URL</a></li>
-
-  <% if(!user || !user.email) { %>
-
-  <li role="presentation"><a href="/register">Register</a></li>
-
-  <li role="presentation"><a href="/login">Login</a></li>
-
-  <% } else {%>
-
-  <div style="float: right">
-
-    <b>Welcome, <%= user['email'] %></b>
-
-    <form method="POST" action="/logout">
-
-      <input type="submit" value="Logout">
-    </form>
-  </div>
-  <% } %>
-</ul>
+<% } %>
+</header>

@@ -1,34 +1,18 @@
-
-
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Show</title>
-    <% include partials/_header %>
-  </head>
-  <body class="container" >
-    <header> <% include partials/_header %> </header>
-    <main>
-      <div>
-        <h2>Tiny URL [ <%= shortURL %> ]</h2>
-        <br><br>
-        <ul>
-          <li>
-            <a href="/urls"><%= shortURL %> </a>
-            =>
-            <a href="<%= urls[shortURL].url %>"><%= urls[shortURL].url %></a>
+<html lang="en">
+<head>
+  <title>TinyApp</title>
+</head>
+<body>
 
-            <p>Total Url Views =><b><%= urls[shortURL].views %></b> UniqueViews => <b><%= urls[shortURL].uniqueViews %></b> DateCreated => <b><%= urls[shortURL].dateCreated %></b>
-          </li>
-          <br>
-          <form method="POST" action="/urls/<%= shortURL %>?_method=PUT">
-            <label for="updateURL"></label>
-            <input id="updateURL" type="text" name="updateURL" placeholder="<%= urls[shortURL].url %>" style="width:500px" required>
-            <input type="submit" value="update" style="float: right">
-          </form>
-          <form method="POST" action="/urls/<%= shortURL %>?_method=DELETE">
-            <input type="submit" value="delete" style="float: right">
-          </form>
-        </ul>
-  </body>
+  <%- include('partials/_header') %>
+
+  <p>
+    <form action="/urls/<%=shortURL%>/update" method="POST" style="margin:150px">
+      <label for="longURL"><%=shortURL%></label>
+      <input id="longURL" type="text" name="longURL" placeholder="<%=longURL%>" style="width: 300px">
+      <input type="submit" value="update">
+    </form>
+  </p>
+</body>
 </html>
