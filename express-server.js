@@ -16,6 +16,20 @@ app.use(cookieSession({
   maxAge: 24 * 60 * 60 * 1000
 }));
 
+/* TODO
+function checkUserLoggedIn(req, res, next) {
+  if (req.session.userid) {
+    res.locals.userid = req.session.userid;
+    next();
+  } else {
+    res.status(401).send('Not logged in <a href="/login">Login</a>');
+  }
+}
+
+app.get('/someroute', checkUserLoggedIn, function (req, res) {
+  // You no longer have to check if the user is logged in or not
+});
+*/
 
 //OBJECTS
 const urlDatabase = {
@@ -64,6 +78,7 @@ app.get('/urls', (req, res) => {
   const userid = req.session['userid'];
   if (userid) {
     let userURL = {};
+    // Retrieve only the short and long URLs that belong to the logged in
     for(var shortURL in urlDatabase) {
       if (userid === urlDatabase[shortURL].userid) {
         userURL[shortURL] = urlDatabase[shortURL];
@@ -71,8 +86,8 @@ app.get('/urls', (req, res) => {
     };
     let templateVars = {
       urls: userURL,
-      user: userDB[userid],
-      "req": req
+      user: userDB[userid]
+      // "req": req
     };
     res.render("urls_index", templateVars);
   } else {
@@ -85,8 +100,8 @@ app.get("/urls/new", (req, res) => {
   if (userid) {
     let templateVars = {
       urls: urlDatabase,
-      user: userDB[userid],
-      "req": req
+      user: userDB[userid]
+      // req: req
     };
     res.render('urls_new', templateVars);
   } else {
@@ -96,16 +111,29 @@ app.get("/urls/new", (req, res) => {
 
 app.get("/urls/:id", (req, res) => {
   const userid = req.session['userid'];
-  let templateVars = {
-    shortURL: req.params.id,
-    userDB: userDB,
-    longURL: urlDatabase[req.params.id].url,
-    user: userDB[userid]
-  };
-  if (req.session['userid']) {
-    res.render("urls_show", templateVars);
+  const urlEntry = urlDatabase[req.params.id];
+  if (!urlEntry) {
+    res.status(404).send('Invalid short URL');
   } else {
-    res.redirect("/login");
+    if (userid) {
+      // If user is logged in, but short URL was
+      // created by another user, then send error message
+      if (userid !== urlEntry.userid) {
+        res.status(403).send('unauthorized user');
+      } else {
+        // Logged in user is the one who created the short URL,
+        // so render the page
+        let templateVars = {
+          shortURL: req.params.id,
+          userDB: userDB,
+          longURL: urlEntry.url,
+          user: userDB[userid]
+        };
+        res.render("urls_show", templateVars);
+      }
+    } else {
+      res.redirect("/login");
+    }
   }
 });
 
@@ -130,20 +158,25 @@ app.get("/register", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  let longURL = urlDatase[shortURL][url];
-  res.redirect(longURL);
+  let urlEntry = urlDatabase[req.params.shortURL];
+  if (urlEntry) {
+    let longURL = urlEntry.url;
+    res.redirect(longURL);
+  } else {
+    res.status(404).send('Bad short URL');
+  }
 });
 
 
 app.post("/urls", (req, res) => {
   if (req.session['userid']) {
-    let longURL = req.body.longURL;
+    let longURL = (!req.body.longURL.startsWith('http') ? "http://" : "") + req.body.longURL;
     let shortURL = generateRandomString();
     urlDatabase[shortURL] = {
       url: longURL,
       userid: req.session['userid']
     };
-    res.redirect('/urls/');
+    res.redirect('/urls/' + shortURL);
   } else {
     res.status(401).send('Not logged in <a href="/login">Login</a>');
   }
@@ -151,6 +184,7 @@ app.post("/urls", (req, res) => {
 
 app.post("/login", (req, res) => {
   let user = null;
+  // Find user with that email
   for (let username in userDB) {
     if (userDB[username]['email'] === req.body.email){
       user = userDB[username];
@@ -174,29 +208,48 @@ app.post("/urls/:id/delete", (req, res) => {
   res.redirect("/urls");
 });
 
-app.post("/urls/:id/update", (req, res) => {
-  if (req.session['userid']){
-    urlDatabase[req.params.id].url = req.body.longURL;
-    res.redirect("/urls");
+app.post("/urls/:id", (req, res) => {
+  const urlEntry = urlDatabase[req.params.id];
+  if (urlEntry) {
+    let userid = req.session['userid'];
+    if (userid) {
+      if (userid !== urlEntry.userid) {
+        res.status(403).send('unauthorized user');
+      } else {
+        // TODO: Make the optional adding of the http:// prefix a function on its own
+        let longURL = (!req.body.longURL.startsWith('http') ? "http://" : "") + req.body.longURL;
+        urlEntry.url = longURL;
+        res.redirect("/urls/" + req.params.id);
+      }
+    } else {
+      res.status(401).send('Not logged in <a href="/login">Login</a>');
+    }
   } else {
-    res.redirect("/login");
+    res.status(404).send('invalid short url');
   }
+  // if (req.session['userid']){
+  //   urlDatabase[req.params.id].url = req.body.longURL;
+  //   res.redirect("/urls");
+  // } else {
+  //   res.redirect("/login");
+  // }
 });
 
 app.post('/register', (req, res) => {
   let email = req.body.email;
   let password = req.body.password;
-  let hashed_password = bcrypt.hashSync(password, 10);
-  let id = generateRandomString();
-  if (password.length <= 0 && email.length <= 0){
+  if (!password.length || !email.length){
     res.status(400).send('enter valid email/password');
   } else {
+    // Make sure that email is not already taken
     for (let user in userDB) {
       if (email === userDB[user]['email']){
         res.status(400).send('email in use');
         return;
       }
     }
+    let hashed_password = bcrypt.hashSync(password, 10);
+    let id = generateRandomString();
     userDB[id] = {
       id: id,
       email: req.body.email,
