@@ -65,7 +65,7 @@ var text = "";
         text += possible.charAt(Math.floor(Math.random() * possible.length));
     return text;
 }
-
+//if logged in, redirect to their urls page else send them to login
 app.get("/", (req, res) => {
   if (req.session['userid']) {
     res.redirect('/urls');
@@ -79,7 +79,7 @@ app.get('/urls', (req, res) => {
   if (userid) {
     let userURL = {};
     // Retrieve only the short and long URLs that belong to the logged in
-    for(var shortURL in urlDatabase) {
+    for (var shortURL in urlDatabase) {
       if (userid === urlDatabase[shortURL].userid) {
         userURL[shortURL] = urlDatabase[shortURL];
       }
@@ -87,7 +87,6 @@ app.get('/urls', (req, res) => {
     let templateVars = {
       urls: userURL,
       user: userDB[userid]
-      // "req": req
     };
     res.render("urls_index", templateVars);
   } else {
@@ -101,7 +100,6 @@ app.get("/urls/new", (req, res) => {
     let templateVars = {
       urls: urlDatabase,
       user: userDB[userid]
-      // req: req
     };
     res.render('urls_new', templateVars);
   } else {
@@ -112,6 +110,7 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:id", (req, res) => {
   const userid = req.session['userid'];
   const urlEntry = urlDatabase[req.params.id];
+  //if the url created doesnt exist send error message
   if (!urlEntry) {
     res.status(404).send('Invalid short URL');
   } else {
@@ -156,18 +155,20 @@ app.get("/register", (req, res) => {
     res.render("register");
   }
 });
-
+//if shortURL entry exists redirect to the longURL
 app.get("/u/:shortURL", (req, res) => {
   let urlEntry = urlDatabase[req.params.shortURL];
   if (urlEntry) {
     let longURL = urlEntry.url;
     res.redirect(longURL);
+    //otherwise send an error message
   } else {
     res.status(404).send('Bad short URL');
   }
 });
 
-
+//if user logged in generate a shortURL and saves it to that user
+//makes sure the longURL begins with an http string
 app.post("/urls", (req, res) => {
   if (req.session['userid']) {
     let longURL = (!req.body.longURL.startsWith('http') ? "http://" : "") + req.body.longURL;
@@ -178,6 +179,7 @@ app.post("/urls", (req, res) => {
     };
     res.redirect('/urls/' + shortURL);
   } else {
+    //if not logged in send an error and link to login
     res.status(401).send('Not logged in <a href="/login">Login</a>');
   }
 });
@@ -213,6 +215,7 @@ app.post("/urls/:id", (req, res) => {
   if (urlEntry) {
     let userid = req.session['userid'];
     if (userid) {
+      //if user doesnt match the owner of the url send error message
       if (userid !== urlEntry.userid) {
         res.status(403).send('unauthorized user');
       } else {
@@ -222,17 +225,12 @@ app.post("/urls/:id", (req, res) => {
         res.redirect("/urls/" + req.params.id);
       }
     } else {
+      //if not logged in send error and link to login
       res.status(401).send('Not logged in <a href="/login">Login</a>');
     }
   } else {
     res.status(404).send('invalid short url');
   }
-  // if (req.session['userid']){
-  //   urlDatabase[req.params.id].url = req.body.longURL;
-  //   res.redirect("/urls");
-  // } else {
-  //   res.redirect("/login");
-  // }
 });
 
 app.post('/register', (req, res) => {
